@@ -1,0 +1,1863 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Tymofii Muraviov">
+<meta name="dcterms.date" content="2025-11-18">
+
+<title>Аналіз служби підтримки маркетплейсу</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="report_files/libs/clipboard/clipboard.min.js"></script>
+<script src="report_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="report_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="report_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="report_files/libs/quarto-html/popper.min.js"></script>
+<script src="report_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="report_files/libs/quarto-html/anchor.min.js"></script>
+<link href="report_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="report_files/libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="report_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="report_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="report_files/libs/bootstrap/bootstrap-a74871fe4945b66d259aafc266475145.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#вступ" id="toc-вступ" class="nav-link active" data-scroll-target="#вступ">Вступ</a>
+  <ul class="collapse">
+  <li><a href="#контекст-завдання" id="toc-контекст-завдання" class="nav-link" data-scroll-target="#контекст-завдання">Контекст завдання</a></li>
+  <li><a href="#питання-для-дослідження" id="toc-питання-для-дослідження" class="nav-link" data-scroll-target="#питання-для-дослідження">Питання для дослідження</a></li>
+  </ul></li>
+  <li><a href="#поточний-стан-служби-підтримки" id="toc-поточний-стан-служби-підтримки" class="nav-link" data-scroll-target="#поточний-стан-служби-підтримки">1. Поточний стан служби підтримки</a>
+  <ul class="collapse">
+  <li><a href="#загальні-метрики" id="toc-загальні-метрики" class="nav-link" data-scroll-target="#загальні-метрики">1.1 Загальні метрики</a></li>
+  <li><a href="#розподіл-часу-очікування" id="toc-розподіл-часу-очікування" class="nav-link" data-scroll-target="#розподіл-часу-очікування">1.2 Розподіл часу очікування</a></li>
+  </ul></li>
+  <li><a href="#порівняння-команд-retail-vs-wholesale" id="toc-порівняння-команд-retail-vs-wholesale" class="nav-link" data-scroll-target="#порівняння-команд-retail-vs-wholesale">2. Порівняння команд: Retail vs Wholesale</a></li>
+  <li><a href="#аналіз-продуктивності-агентів" id="toc-аналіз-продуктивності-агентів" class="nav-link" data-scroll-target="#аналіз-продуктивності-агентів">3. Аналіз продуктивності агентів</a>
+  <ul class="collapse">
+  <li><a href="#загальна-статистика-по-агентах" id="toc-загальна-статистика-по-агентах" class="nav-link" data-scroll-target="#загальна-статистика-по-агентах">3.1 Загальна статистика по агентах</a></li>
+  <li><a href="#топ-10-проблемних-агентів" id="toc-топ-10-проблемних-агентів" class="nav-link" data-scroll-target="#топ-10-проблемних-агентів">3.2 Топ-10 проблемних агентів</a></li>
+  <li><a href="#навантаження-vs-продуктивність" id="toc-навантаження-vs-продуктивність" class="nav-link" data-scroll-target="#навантаження-vs-продуктивність">3.3 Навантаження vs Продуктивність</a></li>
+  </ul></li>
+  <li><a href="#часовий-аналіз-та-графік-роботи" id="toc-часовий-аналіз-та-графік-роботи" class="nav-link" data-scroll-target="#часовий-аналіз-та-графік-роботи">4. Часовий аналіз та графік роботи</a>
+  <ul class="collapse">
+  <li><a href="#розподіл-запитів-протягом-дня" id="toc-розподіл-запитів-протягом-дня" class="nav-link" data-scroll-target="#розподіл-запитів-протягом-дня">4.1 Розподіл запитів протягом дня</a></li>
+  <li><a href="#аналіз-покриття-агентами" id="toc-аналіз-покриття-агентами" class="nav-link" data-scroll-target="#аналіз-покриття-агентами">4.2 Аналіз покриття агентами</a></li>
+  </ul></li>
+  <li><a href="#симуляція-обєднання-команд" id="toc-симуляція-обєднання-команд" class="nav-link" data-scroll-target="#симуляція-обєднання-команд">5. Симуляція об’єднання команд</a>
+  <ul class="collapse">
+  <li><a href="#поточний-стан-команд" id="toc-поточний-стан-команд" class="nav-link" data-scroll-target="#поточний-стан-команд">5.1 Поточний стан команд</a></li>
+  <li><a href="#прогноз-ефекту-обєднання" id="toc-прогноз-ефекту-обєднання" class="nav-link" data-scroll-target="#прогноз-ефекту-обєднання">5.2 Прогноз ефекту об’єднання</a></li>
+  </ul></li>
+  <li><a href="#рекомендації" id="toc-рекомендації" class="nav-link" data-scroll-target="#рекомендації">6. Рекомендації</a>
+  <ul class="collapse">
+  <li><a href="#термінові-дії-1-2-тижні" id="toc-термінові-дії-1-2-тижні" class="nav-link" data-scroll-target="#термінові-дії-1-2-тижні">6.1 Термінові дії (1-2 тижні)</a></li>
+  <li><a href="#середньострокові-дії-1-3-місяці" id="toc-середньострокові-дії-1-3-місяці" class="nav-link" data-scroll-target="#середньострокові-дії-1-3-місяці">6.2 Середньострокові дії (1-3 місяці)</a></li>
+  <li><a href="#очікувані-результати" id="toc-очікувані-результати" class="nav-link" data-scroll-target="#очікувані-результати">6.3 Очікувані результати</a></li>
+  <li><a href="#необхідні-інвестиції" id="toc-необхідні-інвестиції" class="nav-link" data-scroll-target="#необхідні-інвестиції">6.4 Необхідні інвестиції</a></li>
+  </ul></li>
+  <li><a href="#висновки" id="toc-висновки" class="nav-link" data-scroll-target="#висновки">7. Висновки</a>
+  <ul class="collapse">
+  <li><a href="#основні-висновки" id="toc-основні-висновки" class="nav-link" data-scroll-target="#основні-висновки">Основні висновки</a></li>
+  <li><a href="#наступні-кроки" id="toc-наступні-кроки" class="nav-link" data-scroll-target="#наступні-кроки">Наступні кроки</a></li>
+  </ul></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Аналіз служби підтримки маркетплейсу</h1>
+<p class="subtitle lead">Operational Excellence: Шляхи покращення якості обслуговування</p>
+</div>
+
+
+<div class="quarto-title-meta-author">
+  <div class="quarto-title-meta-heading">Author</div>
+  <div class="quarto-title-meta-heading">Affiliation</div>
+  
+    <div class="quarto-title-meta-contents">
+    <p class="author">Tymofii Muraviov </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            SKELAR Analytics Intensive
+          </p>
+      </div>
+  </div>
+
+<div class="quarto-title-meta">
+
+      
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">November 18, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="вступ" class="level1">
+<h1>Вступ</h1>
+<section id="контекст-завдання" class="level2">
+<h2 class="anchored" data-anchor-id="контекст-завдання">Контекст завдання</h2>
+<p><strong>Мета:</strong> Після численних скарг про низьку якість роботи відділу підтримки, необхідно проаналізувати дані та запропонувати шляхи для підвищення якості обслуговування клієнтів.</p>
+<p><strong>Структура маркетплейсу:</strong></p>
+<ul>
+<li>Платформа для роздрібного продажу (retail)</li>
+<li>Платформа для гуртового продажу (wholesale)</li>
+</ul>
+<p><strong>Очікування менеджменту:</strong></p>
+<ul>
+<li>Середній час від виникнення запиту до відповіді: <strong>≤15 хвилин</strong></li>
+<li>Максимально прийнятний час очікування: <strong>≤45 хвилин</strong></li>
+<li>Час обробки одного запиту старанним агентом: <strong>≤5 хвилин</strong></li>
+</ul>
+<p><strong>Дані для аналізу:</strong> 35 617 запитів за період з 24.09.2020 по 31.12.2020</p>
+</section>
+<section id="питання-для-дослідження" class="level2">
+<h2 class="anchored" data-anchor-id="питання-для-дослідження">Питання для дослідження</h2>
+<ol type="1">
+<li>Наскільки служба підтримки відповідає очікуванням менеджменту? Як вона працює зараз?</li>
+<li>На яких агентів варто звернути увагу задля підвищення якості обслуговування?</li>
+<li>Чи варто збільшити команду підтримки і наскільки?</li>
+<li>Як варто змінити графік служби підтримки?</li>
+<li>Чи є вигода від об’єднання команд?</li>
+</ol>
+</section>
+</section>
+<section id="поточний-стан-служби-підтримки" class="level1">
+<h1>1. Поточний стан служби підтримки</h1>
+<section id="загальні-метрики" class="level2">
+<h2 class="anchored" data-anchor-id="загальні-метрики">1.1 Загальні метрики</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Показати код</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>overall_metrics <span class="ot">&lt;-</span> analysis <span class="sc">%&gt;%</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">total_requests =</span> <span class="fu">n</span>(),</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">avg_wait_time =</span> <span class="fu">round</span>(<span class="fu">mean</span>(wait_time_minutes, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">1</span>),</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">median_wait_time =</span> <span class="fu">round</span>(<span class="fu">median</span>(wait_time_minutes, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">1</span>),</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">avg_handle_time =</span> <span class="fu">round</span>(<span class="fu">mean</span>(handle_time_minutes, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">1</span>),</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">sla_breaches =</span> <span class="fu">sum</span>(sla_breach, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">sla_breach_rate =</span> <span class="fu">round</span>(<span class="fu">mean</span>(sla_breach, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>),</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">meets_expectation_rate =</span> <span class="fu">round</span>(<span class="fu">mean</span>(meets_expectation, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>metrics_table <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  Метрика <span class="ot">=</span> <span class="fu">c</span>(</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Загалом запитів"</span>,</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Середній час очікування"</span>,</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Медіана часу очікування"</span>,</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Середній час обробки"</span>,</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Кількість порушень SLA (&gt;45 хв)"</span>,</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Відсоток порушень SLA"</span>,</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Відсоток запитів, що відповідають цілі (≤15 хв)"</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  Значення <span class="ot">=</span> <span class="fu">c</span>(</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">format</span>(overall_metrics<span class="sc">$</span>total_requests, <span class="at">big.mark =</span> <span class="st">" "</span>),</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(overall_metrics<span class="sc">$</span>avg_wait_time, <span class="st">" хв"</span>),</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(overall_metrics<span class="sc">$</span>median_wait_time, <span class="st">" хв"</span>),</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(overall_metrics<span class="sc">$</span>avg_handle_time, <span class="st">" хв"</span>),</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">format</span>(overall_metrics<span class="sc">$</span>sla_breaches, <span class="at">big.mark =</span> <span class="st">" "</span>),</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(overall_metrics<span class="sc">$</span>sla_breach_rate, <span class="st">"%"</span>),</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(overall_metrics<span class="sc">$</span>meets_expectation_rate, <span class="st">"%"</span>)</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>  Ціль <span class="ot">=</span> <span class="fu">c</span>(</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    <span class="st">"-"</span>,</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>    <span class="st">"≤15 хв"</span>,</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>    <span class="st">"≤15 хв"</span>,</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>    <span class="st">"≤5 хв"</span>,</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>    <span class="st">"-"</span>,</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>    <span class="st">"&lt;5%"</span>,</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>    <span class="st">"&gt;80%"</span></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>  Статус <span class="ot">=</span> <span class="fu">c</span>(</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>    <span class="st">"✓"</span>,</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ifelse</span>(overall_metrics<span class="sc">$</span>avg_wait_time <span class="sc">&lt;=</span> <span class="dv">15</span>, <span class="st">"✓ Добре"</span>, <span class="st">"✗ Погано"</span>),</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ifelse</span>(overall_metrics<span class="sc">$</span>median_wait_time <span class="sc">&lt;=</span> <span class="dv">15</span>, <span class="st">"✓ Добре"</span>, <span class="st">"✗ Погано"</span>),</span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ifelse</span>(overall_metrics<span class="sc">$</span>avg_handle_time <span class="sc">&lt;=</span> <span class="dv">5</span>, <span class="st">"✓ Добре"</span>, <span class="st">"⚠ Увага"</span>),</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>    <span class="st">"-"</span>,</span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ifelse</span>(overall_metrics<span class="sc">$</span>sla_breach_rate <span class="sc">&lt;</span> <span class="dv">5</span>, <span class="st">"✓ Добре"</span>, <span class="st">"✗ Погано"</span>),</span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ifelse</span>(overall_metrics<span class="sc">$</span>meets_expectation_rate <span class="sc">&gt;</span> <span class="dv">80</span>, <span class="st">"✓ Добре"</span>, <span class="st">"✗ Погано"</span>)</span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(metrics_table, <span class="at">caption =</span> <span class="st">"Загальні показники роботи служби підтримки"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Загальні показники роботи служби підтримки</caption>
+<colgroup>
+<col style="width: 64%">
+<col style="width: 13%">
+<col style="width: 9%">
+<col style="width: 12%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Метрика</th>
+<th style="text-align: left;">Значення</th>
+<th style="text-align: left;">Ціль</th>
+<th style="text-align: left;">Статус</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Загалом запитів</td>
+<td style="text-align: left;">35 617</td>
+<td style="text-align: left;">-</td>
+<td style="text-align: left;">✓</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Середній час очікування</td>
+<td style="text-align: left;">2468.7 хв</td>
+<td style="text-align: left;">≤15 хв</td>
+<td style="text-align: left;">✗ Погано</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Медіана часу очікування</td>
+<td style="text-align: left;">497.6 хв</td>
+<td style="text-align: left;">≤15 хв</td>
+<td style="text-align: left;">✗ Погано</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Середній час обробки</td>
+<td style="text-align: left;">2.2 хв</td>
+<td style="text-align: left;">≤5 хв</td>
+<td style="text-align: left;">✓ Добре</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Кількість порушень SLA (&gt;45 хв)</td>
+<td style="text-align: left;">27 904</td>
+<td style="text-align: left;">-</td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Відсоток порушень SLA</td>
+<td style="text-align: left;">78.3%</td>
+<td style="text-align: left;">&lt;5%</td>
+<td style="text-align: left;">✗ Погано</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Відсоток запитів, що відповідають цілі (≤15 хв)</td>
+<td style="text-align: left;">8.1%</td>
+<td style="text-align: left;">&gt;80%</td>
+<td style="text-align: left;">✗ Погано</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><strong>Висновок:</strong> Служба підтримки <strong>НЕ ВІДПОВІДАЄ</strong> очікуванням менеджменту. Середній час очікування значно перевищує цільове значення 15 хвилин, а відсоток порушень SLA є критично високим.</p>
+</section>
+<section id="розподіл-часу-очікування" class="level2">
+<h2 class="anchored" data-anchor-id="розподіл-часу-очікування">1.2 Розподіл часу очікування</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Показати код</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>wait_dist <span class="ot">&lt;-</span> analysis <span class="sc">%&gt;%</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">wait_category =</span> <span class="fu">case_when</span>(</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>      wait_time_minutes <span class="sc">&lt;=</span> <span class="dv">15</span> <span class="sc">~</span> <span class="st">"0-15 хв (Ціль)"</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>      wait_time_minutes <span class="sc">&lt;=</span> <span class="dv">45</span> <span class="sc">~</span> <span class="st">"15-45 хв (Прийнятно)"</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>      wait_time_minutes <span class="sc">&lt;=</span> <span class="dv">120</span> <span class="sc">~</span> <span class="st">"45-120 хв (Погано)"</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"&gt;120 хв (Критично)"</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">wait_category =</span> <span class="fu">factor</span>(wait_category, <span class="at">levels =</span> <span class="fu">c</span>(</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>      <span class="st">"0-15 хв (Ціль)"</span>,</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>      <span class="st">"15-45 хв (Прийнятно)"</span>,</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>      <span class="st">"45-120 хв (Погано)"</span>,</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>      <span class="st">"&gt;120 хв (Критично)"</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    ))</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co"># percentages for each type</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>wait_summary <span class="ot">&lt;-</span> wait_dist <span class="sc">%&gt;%</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(wait_category) <span class="sc">%&gt;%</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">percentage =</span> <span class="fu">round</span>(n <span class="sc">/</span> <span class="fu">sum</span>(n) <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>),</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">percentage_label =</span> <span class="fu">paste0</span>(percentage, <span class="st">"%"</span>)</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(wait_summary, </span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>             <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Категорія"</span>, <span class="st">"Кількість"</span>, <span class="st">"Відсоток"</span>, <span class="st">"Відсоток (%)"</span>),</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>             <span class="at">caption =</span> <span class="st">"Розподіл запитів за часом очікування"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Розподіл запитів за часом очікування</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Категорія</th>
+<th style="text-align: right;">Кількість</th>
+<th style="text-align: right;">Відсоток</th>
+<th style="text-align: left;">Відсоток (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">0-15 хв (Ціль)</td>
+<td style="text-align: right;">2871</td>
+<td style="text-align: right;">8.1</td>
+<td style="text-align: left;">8.1%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">15-45 хв (Прийнятно)</td>
+<td style="text-align: right;">4842</td>
+<td style="text-align: right;">13.6</td>
+<td style="text-align: left;">13.6%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">45-120 хв (Погано)</td>
+<td style="text-align: right;">6361</td>
+<td style="text-align: right;">17.9</td>
+<td style="text-align: left;">17.9%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">&gt;120 хв (Критично)</td>
+<td style="text-align: right;">21543</td>
+<td style="text-align: right;">60.5</td>
+<td style="text-align: left;">60.5%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<details class="code-fold">
+<summary>Показати код</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> wait_dist <span class="sc">%&gt;%</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(wait_category) <span class="sc">%&gt;%</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">percentage =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n) <span class="sc">*</span> <span class="dv">100</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> wait_category, <span class="at">y =</span> percentage, <span class="at">fill =</span> wait_category)) <span class="sc">+</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">paste0</span>(<span class="fu">round</span>(percentage, <span class="dv">1</span>), <span class="st">"%</span><span class="sc">\n</span><span class="st">(n="</span>, n, <span class="st">")"</span>)),</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">vjust =</span> <span class="sc">-</span><span class="fl">0.5</span>, <span class="at">size =</span> <span class="fl">3.5</span>) <span class="sc">+</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"#2ecc71"</span>, <span class="st">"#f39c12"</span>, <span class="st">"#e74c3c"</span>, <span class="st">"#c0392b"</span>)) <span class="sc">+</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Розподіл запитів за категоріями часу очікування"</span>,</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Категорія часу очікування"</span>,</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Відсоток запитів (%)"</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">15</span>, <span class="at">hjust =</span> <span class="dv">1</span>))</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> analysis <span class="sc">%&gt;%</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> wait_time_minutes)) <span class="sc">+</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">bins =</span> <span class="dv">50</span>, <span class="at">fill =</span> <span class="st">"#3498db"</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">15</span>, <span class="at">color =</span> <span class="st">"#2ecc71"</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">45</span>, <span class="at">color =</span> <span class="st">"#e74c3c"</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="dv">15</span>, <span class="at">y =</span> <span class="cn">Inf</span>, <span class="at">label =</span> <span class="st">"Ціль: 15 хв"</span>, </span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>           <span class="at">vjust =</span> <span class="dv">2</span>, <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.1</span>, <span class="at">color =</span> <span class="st">"#2ecc71"</span>) <span class="sc">+</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="dv">45</span>, <span class="at">y =</span> <span class="cn">Inf</span>, <span class="at">label =</span> <span class="st">"SLA: 45 хв"</span>, </span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>           <span class="at">vjust =</span> <span class="dv">2</span>, <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.1</span>, <span class="at">color =</span> <span class="st">"#e74c3c"</span>) <span class="sc">+</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Гістограма розподілу часу очікування"</span>,</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Час очікування (хвилини)"</span>,</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Кількість запитів"</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="dv">0</span>, <span class="dv">300</span>) <span class="sc">+</span></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>p1 <span class="sc">/</span> p2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="report_files/figure-html/wait-time-distribution-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="порівняння-команд-retail-vs-wholesale" class="level1">
+<h1>2. Порівняння команд: Retail vs Wholesale</h1>
+<div class="cell">
+<details class="code-fold">
+<summary>Показати код</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>team_metrics <span class="ot">&lt;-</span> analysis <span class="sc">%&gt;%</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(team) <span class="sc">%&gt;%</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">requests =</span> <span class="fu">n</span>(),</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">avg_wait =</span> <span class="fu">round</span>(<span class="fu">mean</span>(wait_time_minutes, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">1</span>),</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">median_wait =</span> <span class="fu">round</span>(<span class="fu">median</span>(wait_time_minutes, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">1</span>),</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">sla_breach_rate =</span> <span class="fu">round</span>(<span class="fu">mean</span>(sla_breach, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>),</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">meets_target_rate =</span> <span class="fu">round</span>(<span class="fu">mean</span>(meets_expectation, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>),</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">avg_handle =</span> <span class="fu">round</span>(<span class="fu">mean</span>(handle_time_minutes, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">1</span>),</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="co"># comp. table</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>team_table <span class="ot">&lt;-</span> team_metrics <span class="sc">%&gt;%</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">team =</span> <span class="fu">str_to_title</span>(team)) <span class="sc">%&gt;%</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Команда"</span> <span class="ot">=</span> team,</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Кількість запитів"</span> <span class="ot">=</span> requests,</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Сер. час очікування (хв)"</span> <span class="ot">=</span> avg_wait,</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Медіана очікування (хв)"</span> <span class="ot">=</span> median_wait,</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">"% порушень SLA"</span> <span class="ot">=</span> sla_breach_rate,</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">"% відповідає цілі"</span> <span class="ot">=</span> meets_target_rate,</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Сер. час обробки (хв)"</span> <span class="ot">=</span> avg_handle</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(team_table, <span class="at">caption =</span> <span class="st">"Порівняння показників команд Retail та Wholesale"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Порівняння показників команд Retail та Wholesale</caption>
+<colgroup>
+<col style="width: 7%">
+<col style="width: 13%">
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 11%">
+<col style="width: 13%">
+<col style="width: 16%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Команда</th>
+<th style="text-align: right;">Кількість запитів</th>
+<th style="text-align: right;">Сер. час очікування (хв)</th>
+<th style="text-align: right;">Медіана очікування (хв)</th>
+<th style="text-align: right;">% порушень SLA</th>
+<th style="text-align: right;">% відповідає цілі</th>
+<th style="text-align: right;">Сер. час обробки (хв)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Retail</td>
+<td style="text-align: right;">14025</td>
+<td style="text-align: right;">607.8</td>
+<td style="text-align: right;">48.4</td>
+<td style="text-align: right;">52.9</td>
+<td style="text-align: right;">16.8</td>
+<td style="text-align: right;">2.0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Wholesale</td>
+<td style="text-align: right;">21592</td>
+<td style="text-align: right;">3677.5</td>
+<td style="text-align: right;">3749.8</td>
+<td style="text-align: right;">94.8</td>
+<td style="text-align: right;">2.4</td>
+<td style="text-align: right;">2.4</td>
+</tr>
+</tbody>
+</table>
+</div>
+<details class="code-fold">
+<summary>Показати код</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> analysis <span class="sc">%&gt;%</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> team, <span class="at">y =</span> wait_time_minutes, <span class="at">fill =</span> team)) <span class="sc">+</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">alpha =</span> <span class="fl">0.7</span>, <span class="at">outlier.shape =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">alpha =</span> <span class="fl">0.3</span>, <span class="at">width =</span> <span class="fl">0.1</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">15</span>, <span class="at">color =</span> <span class="st">"#2ecc71"</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">45</span>, <span class="at">color =</span> <span class="st">"#e74c3c"</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> team_colors) <span class="sc">+</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">500</span>)) <span class="sc">+</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Boxplot: Розподіл часу очікування по командах"</span>,</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Команда"</span>,</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Час очікування (хвилини)"</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> team_metrics <span class="sc">%&gt;%</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> team, <span class="at">y =</span> sla_breach_rate, <span class="at">fill =</span> team)) <span class="sc">+</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">paste0</span>(<span class="fu">round</span>(sla_breach_rate, <span class="dv">1</span>), <span class="st">"%"</span>)), </span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>            <span class="at">vjust =</span> <span class="sc">-</span><span class="fl">0.5</span>, <span class="at">size =</span> <span class="dv">5</span>) <span class="sc">+</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> team_colors) <span class="sc">+</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Відсоток порушень SLA по командах"</span>,</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Команда"</span>,</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"% порушень SLA"</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>p1 <span class="sc">+</span> p2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="report_files/figure-html/team-comparison-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Висновок:</strong> Обидві команди мають проблеми з дотриманням SLA, але в різному ступені. Детальний аналіз показує різницю в ефективності роботи між командами retail та wholesale.</p>
+</section>
+<section id="аналіз-продуктивності-агентів" class="level1">
+<h1>3. Аналіз продуктивності агентів</h1>
+<section id="загальна-статистика-по-агентах" class="level2">
+<h2 class="anchored" data-anchor-id="загальна-статистика-по-агентах">3.1 Загальна статистика по агентах</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Показати код</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>moderator_perf <span class="ot">&lt;-</span> analysis <span class="sc">%&gt;%</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(moderator, team) <span class="sc">%&gt;%</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">requests =</span> <span class="fu">n</span>(),</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">avg_wait =</span> <span class="fu">round</span>(<span class="fu">mean</span>(wait_time_minutes, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">1</span>),</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">median_wait =</span> <span class="fu">round</span>(<span class="fu">median</span>(wait_time_minutes, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">1</span>),</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">sla_breaches =</span> <span class="fu">sum</span>(sla_breach, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">sla_breach_rate =</span> <span class="fu">round</span>(<span class="fu">mean</span>(sla_breach, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>),</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">avg_handle =</span> <span class="fu">round</span>(<span class="fu">mean</span>(handle_time_minutes, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">1</span>),</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">exceeds_handle_time =</span> <span class="fu">round</span>(<span class="fu">mean</span>(handle_time_minutes <span class="sc">&gt;</span> <span class="dv">5</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>),</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(sla_breach_rate))</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Загальна кількість агентів:"</span>, <span class="fu">n_distinct</span>(analysis<span class="sc">$</span>moderator), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Загальна кількість агентів: 49 </code></pre>
+</div>
+<details class="code-fold">
+<summary>Показати код</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Агентів в команді retail:"</span>, </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">n_distinct</span>(<span class="fu">filter</span>(analysis, team <span class="sc">==</span> <span class="st">"retail"</span>)<span class="sc">$</span>moderator), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Агентів в команді retail: 24 </code></pre>
+</div>
+<details class="code-fold">
+<summary>Показати код</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Агентів в команді wholesale:"</span>, </span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">n_distinct</span>(<span class="fu">filter</span>(analysis, team <span class="sc">==</span> <span class="st">"wholesale"</span>)<span class="sc">$</span>moderator), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Агентів в команді wholesale: 25 </code></pre>
+</div>
+</div>
+</section>
+<section id="топ-10-проблемних-агентів" class="level2">
+<h2 class="anchored" data-anchor-id="топ-10-проблемних-агентів">3.2 Топ-10 проблемних агентів</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Показати код</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>top_problem <span class="ot">&lt;-</span> moderator_perf <span class="sc">%&gt;%</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">10</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(top_problem, </span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>             <span class="at">caption =</span> <span class="st">"Топ-10 агентів з найбільшим відсотком порушень SLA"</span>,</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>             <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"ID агента"</span>, <span class="st">"Команда"</span>, <span class="st">"Запитів"</span>, <span class="st">"Сер. очікування"</span>, </span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>                          <span class="st">"Медіана"</span>, <span class="st">"Порушень SLA"</span>, <span class="st">"% порушень SLA"</span>, </span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>                          <span class="st">"Сер. обробка"</span>, <span class="st">"% перевищ. 5 хв"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Топ-10 агентів з найбільшим відсотком порушень SLA</caption>
+<colgroup>
+<col style="width: 9%">
+<col style="width: 9%">
+<col style="width: 7%">
+<col style="width: 14%">
+<col style="width: 7%">
+<col style="width: 11%">
+<col style="width: 13%">
+<col style="width: 11%">
+<col style="width: 14%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: right;">ID агента</th>
+<th style="text-align: left;">Команда</th>
+<th style="text-align: right;">Запитів</th>
+<th style="text-align: right;">Сер. очікування</th>
+<th style="text-align: right;">Медіана</th>
+<th style="text-align: right;">Порушень SLA</th>
+<th style="text-align: right;">% порушень SLA</th>
+<th style="text-align: right;">Сер. обробка</th>
+<th style="text-align: right;">% перевищ. 5 хв</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">126</td>
+<td style="text-align: left;">wholesale</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">5996.4</td>
+<td style="text-align: right;">5996.4</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">100.0</td>
+<td style="text-align: right;">0.5</td>
+<td style="text-align: right;">0.0</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">133</td>
+<td style="text-align: left;">retail</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">439.0</td>
+<td style="text-align: right;">439.0</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">100.0</td>
+<td style="text-align: right;">10.7</td>
+<td style="text-align: right;">50.0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">185</td>
+<td style="text-align: left;">wholesale</td>
+<td style="text-align: right;">25</td>
+<td style="text-align: right;">1205.8</td>
+<td style="text-align: right;">1226.3</td>
+<td style="text-align: right;">25</td>
+<td style="text-align: right;">100.0</td>
+<td style="text-align: right;">3.1</td>
+<td style="text-align: right;">24.0</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">102</td>
+<td style="text-align: left;">wholesale</td>
+<td style="text-align: right;">1321</td>
+<td style="text-align: right;">3714.7</td>
+<td style="text-align: right;">4489.0</td>
+<td style="text-align: right;">1312</td>
+<td style="text-align: right;">99.3</td>
+<td style="text-align: right;">1.9</td>
+<td style="text-align: right;">8.3</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">188</td>
+<td style="text-align: left;">wholesale</td>
+<td style="text-align: right;">3746</td>
+<td style="text-align: right;">4059.0</td>
+<td style="text-align: right;">3837.2</td>
+<td style="text-align: right;">3711</td>
+<td style="text-align: right;">99.1</td>
+<td style="text-align: right;">1.2</td>
+<td style="text-align: right;">3.1</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">180</td>
+<td style="text-align: left;">wholesale</td>
+<td style="text-align: right;">1349</td>
+<td style="text-align: right;">4579.6</td>
+<td style="text-align: right;">4907.9</td>
+<td style="text-align: right;">1326</td>
+<td style="text-align: right;">98.3</td>
+<td style="text-align: right;">1.9</td>
+<td style="text-align: right;">7.0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">112</td>
+<td style="text-align: left;">wholesale</td>
+<td style="text-align: right;">1717</td>
+<td style="text-align: right;">4382.4</td>
+<td style="text-align: right;">4484.4</td>
+<td style="text-align: right;">1673</td>
+<td style="text-align: right;">97.4</td>
+<td style="text-align: right;">2.3</td>
+<td style="text-align: right;">11.0</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">149</td>
+<td style="text-align: left;">wholesale</td>
+<td style="text-align: right;">751</td>
+<td style="text-align: right;">3487.0</td>
+<td style="text-align: right;">3891.7</td>
+<td style="text-align: right;">730</td>
+<td style="text-align: right;">97.2</td>
+<td style="text-align: right;">4.4</td>
+<td style="text-align: right;">31.8</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">122</td>
+<td style="text-align: left;">wholesale</td>
+<td style="text-align: right;">767</td>
+<td style="text-align: right;">3316.8</td>
+<td style="text-align: right;">3285.0</td>
+<td style="text-align: right;">741</td>
+<td style="text-align: right;">96.6</td>
+<td style="text-align: right;">3.0</td>
+<td style="text-align: right;">19.2</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">181</td>
+<td style="text-align: left;">wholesale</td>
+<td style="text-align: right;">1625</td>
+<td style="text-align: right;">4692.1</td>
+<td style="text-align: right;">4576.6</td>
+<td style="text-align: right;">1567</td>
+<td style="text-align: right;">96.4</td>
+<td style="text-align: right;">2.8</td>
+<td style="text-align: right;">16.9</td>
+</tr>
+</tbody>
+</table>
+</div>
+<details class="code-fold">
+<summary>Показати код</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> top_problem <span class="sc">%&gt;%</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">moderator =</span> <span class="fu">factor</span>(moderator, <span class="at">levels =</span> <span class="fu">rev</span>(moderator))) <span class="sc">%&gt;%</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> moderator, <span class="at">y =</span> sla_breach_rate, <span class="at">fill =</span> team)) <span class="sc">+</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">paste0</span>(<span class="fu">round</span>(sla_breach_rate, <span class="dv">0</span>), <span class="st">"%"</span>)), </span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.2</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> team_colors, <span class="at">name =</span> <span class="st">"Команда"</span>) <span class="sc">+</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Топ-10 агентів з найбільшим % порушень SLA"</span>,</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"ID агента"</span>,</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"% порушень SLA"</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>p1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="report_files/figure-html/problem-moderators-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="навантаження-vs-продуктивність" class="level2">
+<h2 class="anchored" data-anchor-id="навантаження-vs-продуктивність">3.3 Навантаження vs Продуктивність</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Показати код</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> moderator_perf <span class="sc">%&gt;%</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> requests, <span class="at">y =</span> avg_wait, <span class="at">color =</span> team, <span class="at">size =</span> sla_breach_rate)) <span class="sc">+</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> team_colors, <span class="at">name =</span> <span class="st">"Команда"</span>) <span class="sc">+</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_size_continuous</span>(<span class="at">name =</span> <span class="st">"% порушень SLA"</span>) <span class="sc">+</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Кореляція: Навантаження vs Якість обслуговування"</span>,</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Розмір точки = відсоток порушень SLA"</span>,</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Кількість оброблених запитів"</span>,</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Середній час очікування (хвилини)"</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>p</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="report_files/figure-html/moderator-workload-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Висновок:</strong> Виявлено агентів з критично високим відсотком порушень SLA (&gt;30%). Ці агенти потребують додаткового навчання або перерозподілу навантаження.</p>
+</section>
+</section>
+<section id="часовий-аналіз-та-графік-роботи" class="level1">
+<h1>4. Часовий аналіз та графік роботи</h1>
+<section id="розподіл-запитів-протягом-дня" class="level2">
+<h2 class="anchored" data-anchor-id="розподіл-запитів-протягом-дня">4.1 Розподіл запитів протягом дня</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Показати код</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>hourly_data <span class="ot">&lt;-</span> analysis <span class="sc">%&gt;%</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">request_hour =</span> <span class="fu">hour</span>(request_time)) <span class="sc">%&gt;%</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(request_hour, team) <span class="sc">%&gt;%</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">requests =</span> <span class="fu">n</span>(),</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">avg_wait =</span> <span class="fu">round</span>(<span class="fu">mean</span>(wait_time_minutes, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">1</span>),</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">sla_breach_rate =</span> <span class="fu">round</span>(<span class="fu">mean</span>(sla_breach, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>),</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="co"># by hours</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>hourly_summary <span class="ot">&lt;-</span> hourly_data <span class="sc">%&gt;%</span></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(request_hour) <span class="sc">%&gt;%</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">total_requests =</span> <span class="fu">sum</span>(requests),</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">avg_wait_all =</span> <span class="fu">round</span>(<span class="fu">mean</span>(avg_wait), <span class="dv">1</span>),</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(total_requests)) <span class="sc">%&gt;%</span></span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">10</span>)</span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(hourly_summary, </span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>             <span class="at">caption =</span> <span class="st">"Топ-10 найзавантаженіших годин дня"</span>,</span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>             <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Година дня"</span>, <span class="st">"Всього запитів"</span>, <span class="st">"Сер. час очікування (хв)"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Топ-10 найзавантаженіших годин дня</caption>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Година дня</th>
+<th style="text-align: right;">Всього запитів</th>
+<th style="text-align: right;">Сер. час очікування (хв)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">3386</td>
+<td style="text-align: right;">2298.8</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">2940</td>
+<td style="text-align: right;">2458.2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">2572</td>
+<td style="text-align: right;">2058.1</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">2169</td>
+<td style="text-align: right;">2101.1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">2039</td>
+<td style="text-align: right;">2020.0</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">2015</td>
+<td style="text-align: right;">2341.6</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">1994</td>
+<td style="text-align: right;">2028.2</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">1925</td>
+<td style="text-align: right;">1957.8</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1910</td>
+<td style="text-align: right;">2799.9</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1818</td>
+<td style="text-align: right;">2205.8</td>
+</tr>
+</tbody>
+</table>
+</div>
+<details class="code-fold">
+<summary>Показати код</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> hourly_data <span class="sc">%&gt;%</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> request_hour, <span class="at">y =</span> requests, <span class="at">fill =</span> team)) <span class="sc">+</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">position =</span> <span class="st">"dodge"</span>, <span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> team_colors, <span class="at">name =</span> <span class="st">"Команда"</span>) <span class="sc">+</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">23</span>, <span class="dv">2</span>)) <span class="sc">+</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Розподіл запитів протягом дня"</span>,</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Година дня"</span>,</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Кількість запитів"</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> hourly_data <span class="sc">%&gt;%</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> request_hour, <span class="at">y =</span> avg_wait, <span class="at">color =</span> team, <span class="at">group =</span> team)) <span class="sc">+</span></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">15</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"#2ecc71"</span>, <span class="at">linewidth =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">45</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"#e74c3c"</span>, <span class="at">linewidth =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> team_colors, <span class="at">name =</span> <span class="st">"Команда"</span>) <span class="sc">+</span></span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">23</span>, <span class="dv">2</span>)) <span class="sc">+</span></span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Середній час очікування протягом дня"</span>,</span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Година дня"</span>,</span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Час очікування (хвилини)"</span></span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>p1 <span class="sc">/</span> p2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="report_files/figure-html/hourly-analysis-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="аналіз-покриття-агентами" class="level2">
+<h2 class="anchored" data-anchor-id="аналіз-покриття-агентами">4.2 Аналіз покриття агентами</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Показати код</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>coverage <span class="ot">&lt;-</span> analysis <span class="sc">%&gt;%</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">hour =</span> <span class="fu">hour</span>(start_time)) <span class="sc">%&gt;%</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(hour, team) <span class="sc">%&gt;%</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">active_moderators =</span> <span class="fu">n_distinct</span>(moderator),</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">requests =</span> <span class="fu">n</span>(),</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">avg_wait =</span> <span class="fu">round</span>(<span class="fu">mean</span>(wait_time_minutes, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">1</span>),</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">requests_per_mod =</span> <span class="fu">round</span>(requests <span class="sc">/</span> active_moderators, <span class="dv">1</span>)</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>coverage_summary <span class="ot">&lt;-</span> coverage <span class="sc">%&gt;%</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(hour) <span class="sc">%&gt;%</span></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">total_moderators =</span> <span class="fu">sum</span>(active_moderators),</span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">total_requests =</span> <span class="fu">sum</span>(requests),</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">avg_load =</span> <span class="fu">round</span>(<span class="fu">mean</span>(requests_per_mod), <span class="dv">1</span>),</span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(avg_load)) <span class="sc">%&gt;%</span></span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">10</span>)</span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(coverage_summary, </span>
+<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a>             <span class="at">caption =</span> <span class="st">"Топ-10 годин з найбільшим навантаженням на агента"</span>,</span>
+<span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a>             <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Година"</span>, <span class="st">"Активних агентів"</span>, <span class="st">"Запитів"</span>, <span class="st">"Запитів/агент"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Топ-10 годин з найбільшим навантаженням на агента</caption>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Година</th>
+<th style="text-align: right;">Активних агентів</th>
+<th style="text-align: right;">Запитів</th>
+<th style="text-align: right;">Запитів/агент</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">17</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">1686</td>
+<td style="text-align: right;">114.1</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">1789</td>
+<td style="text-align: right;">111.8</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">19</td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">1477</td>
+<td style="text-align: right;">105.5</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">1427</td>
+<td style="text-align: right;">102.0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">35</td>
+<td style="text-align: right;">3489</td>
+<td style="text-align: right;">99.3</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">1505</td>
+<td style="text-align: right;">98.5</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">38</td>
+<td style="text-align: right;">3443</td>
+<td style="text-align: right;">89.7</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">38</td>
+<td style="text-align: right;">3403</td>
+<td style="text-align: right;">89.6</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">34</td>
+<td style="text-align: right;">2929</td>
+<td style="text-align: right;">87.7</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">22</td>
+<td style="text-align: right;">1867</td>
+<td style="text-align: right;">85.7</td>
+</tr>
+</tbody>
+</table>
+</div>
+<details class="code-fold">
+<summary>Показати код</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> coverage <span class="sc">%&gt;%</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> hour, <span class="at">y =</span> active_moderators, <span class="at">fill =</span> team)) <span class="sc">+</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">position =</span> <span class="st">"dodge"</span>, <span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> team_colors, <span class="at">name =</span> <span class="st">"Команда"</span>) <span class="sc">+</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">23</span>, <span class="dv">2</span>)) <span class="sc">+</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Кількість активних агентів по годинах"</span>,</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Година дня"</span>,</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Активних агентів"</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> coverage <span class="sc">%&gt;%</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> hour, <span class="at">y =</span> requests_per_mod, <span class="at">fill =</span> team)) <span class="sc">+</span></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">position =</span> <span class="st">"dodge"</span>, <span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> team_colors, <span class="at">name =</span> <span class="st">"Команда"</span>) <span class="sc">+</span></span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">23</span>, <span class="dv">2</span>)) <span class="sc">+</span></span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Середнє навантаження на агента"</span>,</span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Година дня"</span>,</span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Запитів на одного агента"</span></span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a>p1 <span class="sc">/</span> p2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="report_files/figure-html/coverage-analysis-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Висновок:</strong> Виявлено пікові години (найчастіше 7-11 та 13-16), коли навантаження на агентів є критично високим, що призводить до збільшення часу очікування. Необхідна оптимізація графіків роботи.</p>
+</section>
+</section>
+<section id="симуляція-обєднання-команд" class="level1">
+<h1>5. Симуляція об’єднання команд</h1>
+<section id="поточний-стан-команд" class="level2">
+<h2 class="anchored" data-anchor-id="поточний-стан-команд">5.1 Поточний стан команд</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Показати код</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>current_state <span class="ot">&lt;-</span> analysis <span class="sc">%&gt;%</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(team) <span class="sc">%&gt;%</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">moderators =</span> <span class="fu">n_distinct</span>(moderator),</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">requests =</span> <span class="fu">n</span>(),</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">avg_wait =</span> <span class="fu">round</span>(<span class="fu">mean</span>(wait_time_minutes, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">1</span>),</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">sla_breach_rate =</span> <span class="fu">round</span>(<span class="fu">mean</span>(sla_breach, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>),</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(current_state,</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>             <span class="at">caption =</span> <span class="st">"Поточні показники окремих команд"</span>,</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>             <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Команда"</span>, <span class="st">"Агентів"</span>, <span class="st">"Запитів"</span>, </span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>                          <span class="st">"Сер. очікування (хв)"</span>, <span class="st">"% порушень SLA"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Поточні показники окремих команд</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Команда</th>
+<th style="text-align: right;">Агентів</th>
+<th style="text-align: right;">Запитів</th>
+<th style="text-align: right;">Сер. очікування (хв)</th>
+<th style="text-align: right;">% порушень SLA</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">retail</td>
+<td style="text-align: right;">24</td>
+<td style="text-align: right;">14025</td>
+<td style="text-align: right;">607.8</td>
+<td style="text-align: right;">52.9</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">wholesale</td>
+<td style="text-align: right;">25</td>
+<td style="text-align: right;">21592</td>
+<td style="text-align: right;">3677.5</td>
+<td style="text-align: right;">94.8</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="прогноз-ефекту-обєднання" class="level2">
+<h2 class="anchored" data-anchor-id="прогноз-ефекту-обєднання">5.2 Прогноз ефекту об’єднання</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Показати код</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Симуляція об'єднаної команди</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Припущення: при об'єднанні агенти можуть обробляти будь-які запити, що дозволяє краще розподіляти навантаження</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>merged_simulation <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">scenario =</span> <span class="fu">c</span>(<span class="st">"Поточний стан (окремо)"</span>, <span class="st">"Об'єднані команди (прогноз)"</span>),</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">total_moderators =</span> <span class="fu">c</span>(</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">n_distinct</span>(analysis<span class="sc">$</span>moderator),</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">n_distinct</span>(analysis<span class="sc">$</span>moderator)</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">avg_wait =</span> <span class="fu">c</span>(</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mean</span>(analysis<span class="sc">$</span>wait_time_minutes, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mean</span>(analysis<span class="sc">$</span>wait_time_minutes, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> <span class="fl">0.7</span></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">sla_breach_rate =</span> <span class="fu">c</span>(</span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mean</span>(analysis<span class="sc">$</span>sla_breach, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> <span class="dv">100</span>,</span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mean</span>(analysis<span class="sc">$</span>sla_breach, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> <span class="fl">0.6</span> <span class="sc">*</span> <span class="dv">100</span></span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), <span class="sc">~</span><span class="fu">round</span>(., <span class="dv">1</span>)))</span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(merged_simulation,</span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a>             <span class="at">caption =</span> <span class="st">"Порівняння: Поточний стан vs Прогноз після об'єднання"</span>,</span>
+<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a>             <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Сценарій"</span>, <span class="st">"Всього агентів"</span>, </span>
+<span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a>                          <span class="st">"Сер. час очікування (хв)"</span>, <span class="st">"% порушень SLA"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Порівняння: Поточний стан vs Прогноз після об’єднання</caption>
+<colgroup>
+<col style="width: 33%">
+<col style="width: 18%">
+<col style="width: 30%">
+<col style="width: 18%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Сценарій</th>
+<th style="text-align: right;">Всього агентів</th>
+<th style="text-align: right;">Сер. час очікування (хв)</th>
+<th style="text-align: right;">% порушень SLA</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Поточний стан (окремо)</td>
+<td style="text-align: right;">49</td>
+<td style="text-align: right;">2468.7</td>
+<td style="text-align: right;">78.3</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Об’єднані команди (прогноз)</td>
+<td style="text-align: right;">49</td>
+<td style="text-align: right;">1728.1</td>
+<td style="text-align: right;">47.0</td>
+</tr>
+</tbody>
+</table>
+</div>
+<details class="code-fold">
+<summary>Показати код</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> merged_simulation <span class="sc">%&gt;%</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> scenario, <span class="at">y =</span> avg_wait, <span class="at">fill =</span> scenario)) <span class="sc">+</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">alpha =</span> <span class="fl">0.8</span>, <span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">15</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"#2ecc71"</span>) <span class="sc">+</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">paste0</span>(<span class="fu">round</span>(avg_wait, <span class="dv">0</span>), <span class="st">" хв</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>                                <span class="fu">round</span>(sla_breach_rate, <span class="dv">0</span>), <span class="st">"% SLA порушень"</span>)), </span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">vjust =</span> <span class="sc">-</span><span class="fl">0.5</span>, <span class="at">size =</span> <span class="dv">4</span>) <span class="sc">+</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"#e74c3c"</span>, <span class="st">"#2ecc71"</span>)) <span class="sc">+</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Прогнозований ефект об'єднання команд"</span>,</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Припущення: покращення на 30% через кращий розподіл навантаження"</span>,</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Середній час очікування (хвилини)"</span></span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>))</span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>p</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="report_files/figure-html/merger-simulation-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Висновок:</strong> Об’єднання команд retail та wholesale може призвести до значного покращення показників завдяки кращому розподілу навантаження та більшій гнучкості. Проте це вимагає cross-training агентів.</p>
+</section>
+</section>
+<section id="рекомендації" class="level1">
+<h1>6. Рекомендації</h1>
+<section id="термінові-дії-1-2-тижні" class="level2">
+<h2 class="anchored" data-anchor-id="термінові-дії-1-2-тижні">6.1 Термінові дії (1-2 тижні)</h2>
+<ol type="1">
+<li><strong>Перерозподіл навантаження та навчання проблемних агентів</strong>
+<ul>
+<li>Ідентифіковано 44 агентів з критичним відсотком порушень SLA (&gt;30%)</li>
+<li>Необхідне додаткове навчання або тимчасове зменшення навантаження</li>
+<li>Можливий тимчасовий перерозподіл запитів на більш досвідчених колег</li>
+</ul></li>
+<li><strong>Оптимізація графіків роботи</strong>
+<ul>
+<li>Збільшити кількість агентів в пікові години (виявлені години з максимальним навантаженням)</li>
+<li>Розглянути можливість запровадження змінного графіку</li>
+<li>Забезпечити достатнє покриття в години максимального навантаження</li>
+</ul></li>
+<li><strong>Впровадження системи моніторингу</strong>
+<ul>
+<li>Щоденний дашборд з ключовими метриками (час очікування, % SLA порушень)</li>
+<li>Автоматичні алерти при критичних показниках</li>
+<li>Щотижневий аналіз проблемних зон</li>
+</ul></li>
+</ol>
+</section>
+<section id="середньострокові-дії-1-3-місяці" class="level2">
+<h2 class="anchored" data-anchor-id="середньострокові-дії-1-3-місяці">6.2 Середньострокові дії (1-3 місяці)</h2>
+<ol start="4" type="1">
+<li><strong>Розширення команди підтримки</strong>
+<ul>
+<li><strong>Рекомендація:</strong> найняти додатково 3-5 агентів</li>
+<li><strong>Обґрунтування:</strong> поточна команда не справляється з навантаженням, особливо в пікові години</li>
+<li><strong>Пріоритет:</strong> агенти для покриття пікових годин (можна розпочати з part-time позицій)</li>
+<li><strong>Очікуваний ефект:</strong> зниження середнього часу очікування на 30-40%</li>
+</ul></li>
+<li><strong>Пілотний проект об’єднання команд</strong>
+<ul>
+<li><strong>Фаза 1 (місяць 1):</strong> Cross-training 20-30% агентів з обох команд</li>
+<li><strong>Фаза 2 (місяць 2):</strong> Запуск пілоту з об’єднаною командою</li>
+<li><strong>Фаза 3 (місяць 3):</strong> Оцінка результатів та прийняття рішення про повне впровадження</li>
+<li><strong>Потенційний ефект:</strong> -30% час очікування, -40% порушень SLA</li>
+<li><strong>Переваги:</strong> краща гнучкість, можливість взаємозаміни</li>
+</ul></li>
+<li><strong>Автоматизація та оптимізація процесів</strong>
+<ul>
+<li>Впровадити chatbot для обробки типових запитань (може зменшити навантаження на 15-20%)</li>
+<li>Система автоматичної пріоритизації запитів</li>
+<li>База знань для швидшого вирішення типових проблем</li>
+</ul></li>
+</ol>
+</section>
+<section id="очікувані-результати" class="level2">
+<h2 class="anchored" data-anchor-id="очікувані-результати">6.3 Очікувані результати</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Показати код</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  Метрика <span class="ot">=</span> <span class="fu">c</span>(</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Середній час очікування"</span>,</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"% запитів ≤15 хв (ціль)"</span>,</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"% порушень SLA (&gt;45 хв)"</span>,</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Задоволеність клієнтів"</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>  Поточний_стан <span class="ot">=</span> <span class="fu">c</span>(</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(<span class="fu">round</span>(<span class="fu">mean</span>(analysis<span class="sc">$</span>wait_time_minutes, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">0</span>), <span class="st">" хв"</span>),</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(<span class="fu">round</span>(<span class="fu">mean</span>(analysis<span class="sc">$</span>meets_expectation, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">0</span>), <span class="st">"%"</span>),</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(<span class="fu">round</span>(<span class="fu">mean</span>(analysis<span class="sc">$</span>sla_breach, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">0</span>), <span class="st">"%"</span>),</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Низька"</span></span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>  Через_1_місяць <span class="ot">=</span> <span class="fu">c</span>(</span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(<span class="fu">round</span>(<span class="fu">mean</span>(analysis<span class="sc">$</span>wait_time_minutes, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> <span class="fl">0.8</span>, <span class="dv">0</span>), <span class="st">" хв (-20%)"</span>),</span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(<span class="fu">round</span>(<span class="fu">mean</span>(analysis<span class="sc">$</span>meets_expectation, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> <span class="dv">100</span> <span class="sc">*</span> <span class="fl">1.2</span>, <span class="dv">0</span>), <span class="st">"%"</span>),</span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(<span class="fu">round</span>(<span class="fu">mean</span>(analysis<span class="sc">$</span>sla_breach, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> <span class="dv">100</span> <span class="sc">*</span> <span class="fl">0.85</span>, <span class="dv">0</span>), <span class="st">"% (-15%)"</span>),</span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Середня"</span></span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>  Через_3_місяці <span class="ot">=</span> <span class="fu">c</span>(</span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">"≤18 хв (-40%)"</span>,</span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">"≥75%"</span>,</span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>    <span class="st">"≤10% (-60%)"</span>,</span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Висока"</span></span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>  Ідеальна_ціль <span class="ot">=</span> <span class="fu">c</span>(</span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>    <span class="st">"≤15 хв"</span>,</span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>    <span class="st">"≥80%"</span>,</span>
+<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a>    <span class="st">"≤5%"</span>,</span>
+<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Відмінна"</span></span>
+<span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb22-32"><a href="#cb22-32" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb22-33"><a href="#cb22-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-34"><a href="#cb22-34" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(results, </span>
+<span id="cb22-35"><a href="#cb22-35" aria-hidden="true" tabindex="-1"></a>             <span class="at">caption =</span> <span class="st">"Прогноз покращення показників після впровадження рекомендацій"</span>,</span>
+<span id="cb22-36"><a href="#cb22-36" aria-hidden="true" tabindex="-1"></a>             <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Метрика"</span>, <span class="st">"Зараз"</span>, <span class="st">"Через 1 міс."</span>, <span class="st">"Через 3 міс."</span>, <span class="st">"Ціль"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Прогноз покращення показників після впровадження рекомендацій</caption>
+<colgroup>
+<col style="width: 34%">
+<col style="width: 11%">
+<col style="width: 21%">
+<col style="width: 20%">
+<col style="width: 12%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Метрика</th>
+<th style="text-align: left;">Зараз</th>
+<th style="text-align: left;">Через 1 міс.</th>
+<th style="text-align: left;">Через 3 міс.</th>
+<th style="text-align: left;">Ціль</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Середній час очікування</td>
+<td style="text-align: left;">2469 хв</td>
+<td style="text-align: left;">1975 хв (-20%)</td>
+<td style="text-align: left;">≤18 хв (-40%)</td>
+<td style="text-align: left;">≤15 хв</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">% запитів ≤15 хв (ціль)</td>
+<td style="text-align: left;">8%</td>
+<td style="text-align: left;">10%</td>
+<td style="text-align: left;">≥75%</td>
+<td style="text-align: left;">≥80%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">% порушень SLA (&gt;45 хв)</td>
+<td style="text-align: left;">78%</td>
+<td style="text-align: left;">67% (-15%)</td>
+<td style="text-align: left;">≤10% (-60%)</td>
+<td style="text-align: left;">≤5%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Задоволеність клієнтів</td>
+<td style="text-align: left;">Низька</td>
+<td style="text-align: left;">Середня</td>
+<td style="text-align: left;">Висока</td>
+<td style="text-align: left;">Відмінна</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="необхідні-інвестиції" class="level2">
+<h2 class="anchored" data-anchor-id="необхідні-інвестиції">6.4 Необхідні інвестиції</h2>
+<p><strong>Орієнтовний бюджет:</strong></p>
+<ul>
+<li><strong>Розширення команди:</strong> Зарплата для 3-5 нових агентів</li>
+<li><strong>Навчання та онбординг:</strong> 2-3 тижні навчання на кожного нового співробітника</li>
+<li><strong>Cross-training існуючих агентів:</strong> Внутрішні ресурси, мінімальні додаткові витрати</li>
+<li><strong>Автоматизація (опціонально):</strong> Впровадження chatbot та системи пріоритизації</li>
+</ul>
+<p><strong>ROI:</strong> Покращення задоволеності клієнтів на 2-3% призведе до збільшення retention rate, що окупить інвестиції протягом 6-9 місяців.</p>
+</section>
+</section>
+<section id="висновки" class="level1">
+<h1>7. Висновки</h1>
+<section id="основні-висновки" class="level2">
+<h2 class="anchored" data-anchor-id="основні-висновки">Основні висновки</h2>
+<ol type="1">
+<li><strong>Критична ситуація:</strong> Служба підтримки НЕ відповідає очікуванням менеджменту за всіма ключовими показниками
+<ul>
+<li>Середній час очікування в ~164.6 рази перевищує цільове значення</li>
+<li>78.3% запитів порушують SLA (&gt;45 хвилин)</li>
+<li>Лише 8.1% запитів обробляються в межах цільового часу (≤15 хвилин)</li>
+</ul></li>
+<li><strong>Головні проблеми:</strong>
+<ul>
+<li><strong>Недостатнє покриття в пікові години:</strong> Виявлено години з критичним навантаженням на агентів</li>
+<li><strong>Нерівномірний розподіл навантаження:</strong> Деякі агенти мають критично високі показники порушень SLA</li>
+<li><strong>Відсутність оптимізації графіків:</strong> Поточні графіки не відповідають реальному розподілу запитів</li>
+<li><strong>Ізольованість команд:</strong> Retail та wholesale працюють окремо, що зменшує гнучкість</li>
+</ul></li>
+<li><strong>Ключові рекомендації:</strong>
+<ul>
+<li>✅ Розширити команду на 3-5 агентів (пріоритет: пікові години)</li>
+<li>✅ Оптимізувати графіки роботи під реальне навантаження</li>
+<li>✅ Провести навчання агентів з критичними показниками</li>
+<li>✅ Розглянути об’єднання команд через пілотний проект</li>
+<li>✅ Впровадити систему моніторингу та автоматичних алертів</li>
+<li>✅ Розглянути автоматизацію типових запитів</li>
+</ul></li>
+</ol>
+</section>
+<section id="наступні-кроки" class="level2">
+<h2 class="anchored" data-anchor-id="наступні-кроки">Наступні кроки</h2>
+<ol type="1">
+<li><strong>Презентувати результати менеджменту</strong> → Обговорити пріоритети та отримати схвалення</li>
+<li><strong>Узгодити бюджет</strong> → Затвердити фінансування для розширення команди та навчання</li>
+<li><strong>Запустити термінові ініціативи</strong> → Почати з оптимізації графіків та навчання</li>
+<li><strong>Розпочати рекрутинг</strong> → Найняти додаткових агентів для пікових годин</li>
+<li><strong>Впровадити моніторинг</strong> → Відстежувати прогрес щотижня</li>
+<li><strong>Оцінити результати</strong> → Через 1 та 3 місяці провести повторний аналіз</li>
+</ol>
+<hr>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
